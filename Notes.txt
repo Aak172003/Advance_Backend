@@ -1,0 +1,75 @@
+
+Nodemon use because of hot reloding concept . 
+If file save so automatically restart the server , so ye pta bhi nhi lgta jo code likha hai wo sb processs hokr code me show hone lga .
+
+----------------------------------------------------------------------------------------------------------------------------------------
+
+How upload images or videos 
+
+first upload images through multer , then these imagaes we will store into our local files 
+(where anything i want to upload so these are saved on this files)
+
+then while uploading any images on cloudinary , this will fetch from our local images files 
+
+This is because , i give one more change to upload .
+This is 2 step Process
+
+----------------------------------------------------------------------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
