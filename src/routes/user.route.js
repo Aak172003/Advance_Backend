@@ -29,6 +29,7 @@ router.route('/update-password').post(verifyJWT, userController.changeCurrentPas
 
 router.route('/get-user').post(verifyJWT, userController.getCurrentUser)
 
+
 // Patch
 router.route('/update-details').patch(verifyJWT, userController.updateAccountDetails)
 
