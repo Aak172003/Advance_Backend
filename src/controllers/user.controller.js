@@ -6,6 +6,8 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { uploadCloudinary } from "../utils/cloudinary.js";
 import jwt from "jsonwebtoken"
 import { v2 as cloudinary } from 'cloudinary';
+
+
 cloudinary.config({
     cloud_name: process.env.CLOUD_NAME,
     api_key: process.env.CLOUD_API_KEY,
