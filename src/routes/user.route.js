@@ -38,6 +38,7 @@ router.route('/update-avatar').patch(verifyJWT, upload.single("avatar"), userCon
 router.route('/update-coverimage').patch(verifyJWT, upload.single("coverImage"), userController.UpdateUserCoverImage)
 
 
+// Channel's userName
 router.route('/get-channel-profile/:username').post(verifyJWT, userController.getUserChannelProfile)
 router.route('/get-watch-history').get(verifyJWT, userController.getWatchHistory)
 

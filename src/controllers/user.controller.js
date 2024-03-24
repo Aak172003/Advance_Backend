@@ -459,8 +459,10 @@ const UpdateUserCoverImage = asyncHandler(
 const getUserChannelProfile = asyncHandler(
     async (req, res, next) => {
 
+        // console.log("req : ", req)
         const { username } = req.params
 
+        // After username trim if i get "" empty means false !(false) => true
         if (!username.trim()) {
             throw new ApiError(400, "Username is Missing")
         }
@@ -497,8 +499,7 @@ const getUserChannelProfile = asyncHandler(
 
             // -------------------local is user , access subscriber and channel form subscriptionschema
             // lookup -> is like operation
-            // find whom i subscribed
-
+            // find whom i subscribed -> subscriber me name of user
             {
                 $lookup: {
                     from: "subscriptions",
@@ -508,7 +509,7 @@ const getUserChannelProfile = asyncHandler(
                 }
             },
 
-            // add new fileds ( with those data which exist in db , but adfileds not exist)
+            // add new fileds ( with those data which exist in db , but addfileds not exist)
             {
                 $addFields: {
                     // subscribe count
@@ -526,8 +527,8 @@ const getUserChannelProfile = asyncHandler(
                         $cond: {
                             // subscribers this is a field -> that why i use $ 
                             if: { $in: [req.user?._id, "$subscribers.subscriber"] },
-                            then: true,
-                            else: false
+                            then: true, // true
+                            else: false // false
                         }
                     }
                 }
@@ -548,8 +549,9 @@ const getUserChannelProfile = asyncHandler(
             }
         ])
 
-        // console.log("channel log --------------------------------------");
-        // console.log(channelProfile);
+        console.log("channel log --------------------------------------");
+        console.log(channelProfile);
+        console.log("channelProfile[0] : ", channelProfile[0])
 
         if (!channelProfile?.length) {
             throw new ApiError(404, "Channel doe's not exist")
@@ -594,9 +596,9 @@ const getWatchHistory = asyncHandler(
                     // result name , this is a new field 
                     as: "watchHistory",
 
+                    // Owner also related to user 
                     // This allows Nested Pipelines
                     pipeline: [
-
                         // owner ke field me saara data pda hai 
 
                         {
@@ -632,6 +634,7 @@ const getWatchHistory = asyncHandler(
                         // Add fiels 
                         {
                             $addFields: {
+                                // existing fields overwrite
                                 owner: {
                                     $first: "$owner"
                                 }
@@ -647,7 +650,14 @@ const getWatchHistory = asyncHandler(
 
         console.log(userHistory[0].watchHistory);
 
-        return res.status(200).json(new ApiResponse(200, userHistory[0].watchHistory, "Watch History Fetched Successfully"))
+        return res.status(200).json(
+            new ApiResponse(200,
+
+                // this has UserHistory Array
+                userHistory[0].watchHistory,
+                "Watch History Fetched Successfully"
+            )
+        )
     }
 )
 
