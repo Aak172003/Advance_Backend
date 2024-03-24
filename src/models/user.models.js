@@ -53,7 +53,7 @@ const userSchema = new Schema(
     { timestamps: true }
 )
 
-// Pre Hook
+// Pre method -> means save password after converting into hashed password
 
 // here use userSchema.pre('save', () => {})
 // this is not applicable, because here we need context of user schema, so that i can perform operation on this.password

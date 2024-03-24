@@ -27,6 +27,8 @@ app.use(express.urlencoded(
 
 // Static folder name ( where i want to store things to my codebase )
 app.use(express.static("public"))
+
+// after adding cookieParser middleware , i can access the cookie object from both req , and res object 
 app.use(cookieParser())
 
 app.use(morgan('dev'));
