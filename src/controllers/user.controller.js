@@ -20,12 +20,24 @@ cloudinary.config({
 const generateAccessAndRefreshToken = async (userId) => {
     try {
 
+        // First Find User 
         const user = await User.findById(userId)
+
+        // get accessToken , refreshToken
         const accessToken = await user.generateAccessToken()
         const refreshToken = await user.generateRefreshToken()
 
+        // store refreshToken in user , beacuse this refreshToken is used to refresh the accessToken if accessToken expires
+        // If user refreshToken and database accessToken are same then , accesstoken refresh
+
+        // Access Token store in Cookie and RefreshToken store in database
+
         user.refreshToken = refreshToken
-        // perfor no validation , directly go and save
+
+        // perfer no validation , directly go and save
+        // If i use user.save() then it means all key try to save , but save before some kind of validation
+        // So i don't want any validation , i want directly save 
+
         await user.save({ validateBeforeSave: false })
 
         return { accessToken, refreshToken }
@@ -142,6 +154,7 @@ const login = asyncHandler(
             // ya to email mil jae , ya to username mil jae 
             $or: [{ username }, { email }]
         })
+
         if (!user) {
             throw new ApiError(404, "User does not exist")
         }
@@ -152,7 +165,10 @@ const login = asyncHandler(
             throw new ApiError(404, "Invalid user Credentials")
         }
 
-        const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id)
+        // Generate { AccessToken, RefreshToken } and send user._id
+        const generateToken = await generateAccessAndRefreshToken(user._id)
+        const { accessToken, refreshToken } = generateToken
+
         const loggedInUser = await User.findById(user._id).select('-password -refreshToken')
 
         const options = {
@@ -160,7 +176,9 @@ const login = asyncHandler(
             secure: true
         }
 
+        // Access Token store in Cookie and RefreshToken store in database
         return res.status(200)
+
             .cookie("accessToken", accessToken, options)
             .cookie("refreshToken", refreshToken, options)
             .json(new ApiResponse(200,
@@ -174,22 +192,27 @@ const login = asyncHandler(
 
 const logoutUser = asyncHandler(
     async (req, res) => {
+
+        // This method is executed after executing middleware , so with this middleware ,
+        // i was set req.user = user , so that's why this method can access the user from req
         const loggedOutUser = req.user
+
+        // console.log("loggedOutUser : ", loggedOutUser)
+
         await User.findByIdAndUpdate(
             req.user._id,
             {
-                $set: {
-                    refreshToken: undefined
+                $unset: {
+                    refreshToken: 1 // Setting the field to 1 indicates that it should be removed
                 }
             },
+            // receive an updated value 
             { new: true }
         )
-
         const options = {
             httpOnly: true,
             secure: true
         }
-
         return res.status(200)
             .clearCookie("accessToken", options)
             .clearCookie("refreshToken", options)
@@ -204,8 +227,13 @@ const logoutUser = asyncHandler(
 
 const refreshAccessToken = asyncHandler(
     async (req, res) => {
-        // i also have refresh token in my db 
-        const inComingToken = req.cookies.refreshToken || req.body.refreshToken
+        // I also have refresh token in my db
+        // So to referesh the Access token , we need to send the refresh token 
+        // When user login , so we store 2 things in cookie 
+        // 1. accessToken , 2. RefreshToken 
+        // If accessToken expired so we can re-generate the accessToken with the help of Refresh Token
+
+        const inComingToken = req.cookies.refreshToken || req.body.refreshToken || req.header("Authorization")?.replace("Bearer", "")
 
         if (!inComingToken) {
             throw new ApiError(401, "Unauthorised Request")
@@ -213,6 +241,9 @@ const refreshAccessToken = asyncHandler(
 
         try {
             const decodeToken = jwt.verify(inComingToken, process.env.REFRESH_TOKEN_SECRET)
+
+            // console.log("Decode Refresh Token", decodeToken)
+
             const user = await User.findById(decodeToken?._id)
 
             if (!user) {
@@ -228,7 +259,13 @@ const refreshAccessToken = asyncHandler(
                 httpOnly: true,
                 secure: true
             }
-            const { accessToken, refreshToken } = await generateAccessAndRefreshToken(user._id)
+            // This will generate { accessToken, refreshToken } 
+            const generateToken = await generateAccessAndRefreshToken(user._id)
+
+            // console.log("generateToken : ", generateToken)
+
+            const { accessToken, refreshToken } = generateToken
+
             return res.status(200)
                 .cookie("accessToken", accessToken, options)
                 .cookie("refreshToken", refreshToken, options)
@@ -245,8 +282,11 @@ const refreshAccessToken = asyncHandler(
 const changeCurrentPassword = asyncHandler(
     async (req, res, next) => {
 
+        // req has user Object 
         const { oldPassword, newPassword } = req.body
+        console.log("req.user : ", req.user)
         const { id } = req.user
+
         const user = await User.findById(id)
         const isPasswordCorrect = await user.isPasswordCorrect(oldPassword)
 

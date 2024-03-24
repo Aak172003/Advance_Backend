@@ -6,12 +6,20 @@ import JWT from 'jsonwebtoken'
 export const verifyJWT = asyncHandler(async (req, res, next) => {
 
     try {
+
+        // req.cookies?.accessToken automatically aceess the accessToke from cookie , because i have add cookieParser middleware
+
+        // req.header("Authorization")?.replace("Bearer", "") ->
+        // In Mobile application, custom header me Authorization me accessToken hota hai
+
         const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer", "")
 
         if (!token) {
             throw new ApiError(401, "Unauthorise Request")
         }
         const decodedToken = JWT.verify(token, process.env.ACCESS_TOEKN_SECRET)
+
+        console.log("decodedToken : ", decodedToken)
 
         const user = await User.findById(decodedToken?._id).select('-password -refreshToken')
 
