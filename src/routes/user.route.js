@@ -1,8 +1,10 @@
+
 import { Router } from "express";
 import * as userController from "../controllers/user.controller.js";
 
 import { upload } from "../middlewares/multerUploadFile.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
+
 const router = Router()
 
 router.route("/register").post(upload.fields([
