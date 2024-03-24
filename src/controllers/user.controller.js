@@ -284,7 +284,7 @@ const changeCurrentPassword = asyncHandler(
 
         // req has user Object 
         const { oldPassword, newPassword } = req.body
-        console.log("req.user : ", req.user)
+        // console.log("req.user : ", req.user)
         const { id } = req.user
 
         const user = await User.findById(id)
@@ -301,7 +301,11 @@ const changeCurrentPassword = asyncHandler(
             .json(new ApiResponse(200, {}, "Password Updated Successfully"))
     }
 )
-// Get Get User 
+
+// Get Get User
+// First Run verifyJWT Middleware , this will add user in req ,
+// so we can return req.user as a current user
+
 const getCurrentUser = asyncHandler(
     async (req, res, next) => {
         return res
@@ -341,17 +345,18 @@ const updateAccountDetails = asyncHandler(
 const updateUserAvatar = asyncHandler(
     async (req, res, next) => {
 
+        // get single file path
         const avatarLocalPath = req.file?.path;
-        const url = req.user.avatar
-        const regex = (/\/([^\/]+)\.jpg$/) || (/\/([^\/]+)\.png$/);
 
-        const match = url.match(regex)
-        console.log("match is ------------------- ", match);
+        const url = req.user.avatar
+        const regex = /\/([^\/]+)\.jpg$|\/([^\/]+)\.png$/;
+
+        const match = url.match(regex);
 
         let extractedstring = undefined
         if (match) {
-            extractedstring = match[1]
-            console.log("Extracted String ------------------- ", extractedstring);
+
+            extractedstring = match[1] || match[2]; // Select the matched group that contains the filename
         }
         else {
             console.log("No match Found");
@@ -362,10 +367,12 @@ const updateUserAvatar = asyncHandler(
         }
 
         if (req.user.avatar) {
+            // Delete previous avatar from Cloudinary using the extracted filename
             await cloudinary.uploader.destroy(`${extractedstring}`, function (error, result) {
                 if (error) {
                     console.error(error)
                 } else {
+                    // return true or false
                     console.log(result)
                 }
             })
@@ -386,7 +393,6 @@ const updateUserAvatar = asyncHandler(
             { new: true }
         ).select("-password")
 
-
         return res
             .status(200)
             .json(new ApiResponse(200, updatedUserAvatar, "Avatar Updated Successfully"))
@@ -395,18 +401,17 @@ const updateUserAvatar = asyncHandler(
 
 const UpdateUserCoverImage = asyncHandler(
     async (req, res, next) => {
+
         const coverImageLocalPath = req.file?.path
 
         const url = req.user.coverImage
-        const regex = (/\/([^\/]+)\.jpg$/) || (/\/([^\/]+)\.png$/);
 
-        const match = url.match(regex)
-        console.log("match is ------------------- ", match);
-
+        const regex = /\/([^\/]+)\.jpg$|\/([^\/]+)\.png$/;
+        const match = url.match(regex);
         let extractedstring = undefined
+
         if (match) {
-            extractedstring = match[1]
-            console.log("Extracted String ------------------- ", extractedstring);
+            extractedstring = match[1] || match[2]; // Select the matched group that contains the filename
         }
         else {
             console.log("No match Found");
@@ -417,6 +422,9 @@ const UpdateUserCoverImage = asyncHandler(
         }
 
         if (req.user.coverImage) {
+
+            // Delete previous avatar from Cloudinary using the extracted filename
+
             await cloudinary.uploader.destroy(`${extractedstring}`, function (error, result) {
                 if (error) {
                     console.error(error)
@@ -425,6 +433,7 @@ const UpdateUserCoverImage = asyncHandler(
                 }
             })
         }
+
         const coverImage = await uploadCloudinary(coverImageLocalPath)
         if (!coverImage.url) {
             throw new ApiError(400, "Error While Uploading on coverImage")
@@ -444,6 +453,8 @@ const UpdateUserCoverImage = asyncHandler(
             .json(new ApiResponse(200, updatedUserCoverImage, " Cover Image Updated Successfully"))
     }
 )
+
+// --------------------- Start Aggregration Pipeline --------------------------
 
 const getUserChannelProfile = asyncHandler(
     async (req, res, next) => {
