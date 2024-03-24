@@ -26,6 +26,11 @@ mongoose-aggregate-paginate-v2 -> This library allow to write mongodb aggration 
 
 JWT Token is something like Bearer Token , means jo usko bear krta hai , mai usko ek authenticate or sahi person maan lunga
 
+----------------------------------------------------------------------------------------------------------------------------------------
+
+URL -> Uniform Resouce Locator
+URI -> Uniform Resouce Identifier 
+URN -> Uniform Resouce Name
 
 
 
