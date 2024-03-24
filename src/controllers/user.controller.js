@@ -1,10 +1,13 @@
 import mongoose from "mongoose";
+import jwt from "jsonwebtoken"
+
 import { User } from "../models/user.models.js";
 import { ApiError } from "../utils/ApiError.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
+
+// File Uploader
 import { uploadCloudinary } from "../utils/cloudinary.js";
-import jwt from "jsonwebtoken"
 import { v2 as cloudinary } from 'cloudinary';
 
 
@@ -34,8 +37,8 @@ const generateAccessAndRefreshToken = async (userId) => {
 
 const register = asyncHandler(
     async (req, res) => {
-        // res.status(200).json({
-        //     message: " ok this is Register "
+        // return res.status(200).json({
+        //     message: " ok this is Register API"
         // })
 
         // get user details from frontend
@@ -60,7 +63,7 @@ const register = asyncHandler(
         // validations ka ek new file bnta hai or need ke accordings yaha call krte hai
 
         const existingUser = await User.findOne({
-            // This is Operators
+            // This is Or Operator 
             $or: [{ username }, { email }]
         })
 
@@ -69,7 +72,9 @@ const register = asyncHandler(
         }
 
         // req.files  -> multer give this options 
-        const avatarLocalPath = req.files?.avatar[0]?.path;
+        const avatarLocalPath = req.files?.avatar[0]?.path;  // path get after multer store the file into local
+
+        // console.log("req.files from User Controller : ", req.files)
 
         // coverImage
         // const coverImageLocalPath = req.files?.coverImage[0]?.path;
@@ -77,18 +82,27 @@ const register = asyncHandler(
 
         let coverImageLocalPath;
 
-        if (req.files && Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0) {
-            coverImageLocalPath = req.files.coverImage[0].path
+        if (req.files &&
+
+            // check req.files have array or not means req.files have [avatar , coverimage]
+
+            Array.isArray(req.files.coverImage)
+            && req.files.coverImage.length > 0   // check if array and if req.files.coverImage.length > 0 means client send coverImageAsWell
+        ) {
+            coverImageLocalPath = req.files.coverImage[0].path // path get after multer store the file into local
         }
+
         if (!avatarLocalPath) {
             throw new ApiError(400, "Avatar file is Required")
         }
-
         const avatar = await uploadCloudinary(avatarLocalPath)
         const coverImage = await uploadCloudinary(coverImageLocalPath)
 
+        // console.log("avatar : ", avatar)
+        // console.log("coverImage : ", coverImage)
+
         if (!avatar) {
-            throw new ApiError(400, "Avatar file is Required")
+            throw new ApiError(400, "Avatar file not Upload Successfully")
         }
 
         const user = await User.create({
@@ -99,6 +113,8 @@ const register = asyncHandler(
             password,
             username
         })
+
+        // _id of newlyuser create
         const newlyCreatedUser = await User.findById(user._id).select('-password -refreshToken')
 
         if (!newlyCreatedUser) {

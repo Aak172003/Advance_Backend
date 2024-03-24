@@ -19,17 +19,17 @@ const asyncHandler = (fun_which_execute) => {
 // Pass fun to another function 
 // const asyncHandler = (fun) => () => { }
 
-const asyncHandler1 = (fun_which_execute) => async (req, res, next) => {
-    try {
-        await fun_which_execute(req, res, next)
-    }
-    catch (error) {
-        res.status(error.code || 500).json({
-            success: false,
-            message: error.message
-        })
-    }
-}
+// const asyncHandler = (fun_which_execute) => async (req, res, next) => {
+//     try {
+//         await fun_which_execute(req, res, next)
+//     }
+//     catch (error) {
+//         res.status(error.code || 500).json({
+//             success: false,
+//             message: error.message
+//         })
+//     }
+// }
 
 export { asyncHandler }
 // export { asyncHandler  , asyncHandler1}

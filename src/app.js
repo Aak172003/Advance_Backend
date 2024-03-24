@@ -32,6 +32,7 @@ app.use(cookieParser())
 app.use(morgan('dev'));
 
 // routes 
+// api versioning 
 app.use("/api/v1/user", userRouter)
 
 app.get('/app', (req, res) => {

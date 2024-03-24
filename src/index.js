@@ -9,11 +9,11 @@ import App from './app.js'
 // So in first running file we need to execute dotenv.config();
 // Which means the env variable is avaible throughout the code
 
-dotenv.config();
+// dotenv.config();
 
-// dotenv.config({
-//     path: './env'
-// });
+dotenv.config({
+    path: './env'
+});
 
 
 // This is App Js File

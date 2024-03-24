@@ -9,7 +9,8 @@ const storage = multer.diskStorage({
     destination: function (req, file, cb) {
         // cb(null, '../../public/temp_files')
 
-        console.log("files -> ", file)
+        // console.log("files from multerfile -> ", file)
+
         cb(null, './public/temp_files')
     },
 
