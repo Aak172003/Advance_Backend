@@ -18,10 +18,13 @@ This is 2 step Process
 
 Middleware has 4 parameters -> (err , req , res , next)
 
+----------------------------------------------------------------------------------------------------------------------------------------
 
+mongoose-aggregate-paginate-v2 -> This library allow to write mongodb aggration pipeline
 
+----------------------------------------------------------------------------------------------------------------------------------------
 
-
+JWT Token is something like Bearer Token , means jo usko bear krta hai , mai usko ek authenticate or sahi person maan lunga
 
 
 

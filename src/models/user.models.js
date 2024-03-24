@@ -53,46 +53,62 @@ const userSchema = new Schema(
     { timestamps: true }
 )
 
-// pre Hook
-userSchema.pre('save', async function (next) {
-    // is password is modified by end user then hash password , otherwise return next 
-    if (!this.isModified("password")) return next()
-    this.password = await bcrypt.hash(this.password, 10)
-    next()
-})
+// Pre Hook
+
+// here use userSchema.pre('save', () => {})
+// this is not applicable, because here we need context of user schema, so that i can perform operation on this.password
+
+userSchema.pre('save',
+
+    // Always prefer this 
+    async function (next) {
+        // if password is modified by end user then hash password , otherwise return next 
+        if (!this.isModified("password")) return next()
+
+        this.password = await bcrypt.hash(this.password, 10)
+        next()
+    })
 
 // Inject Methods with userSchema
 userSchema.methods.isPasswordCorrect = async function (password) {
+    // this return true or false
     return await bcrypt.compare(password, this.password)
 }
 
 userSchema.methods.generateAccessToken = function () {
+
+    const payload = {
+        _id: this._id,
+        email: this.email,
+        username: this.username,
+        fullName: this.fullname
+    }
     const token = jwt.sign(
-        // payload
-        {
-            _id: this._id,
-            email: this.email,
-            username: this.username,
-            fullName: this.fullname
-        },
+        // Payload data , because we generate token by th help of this payload
+        payload
+        ,
+        // JWT Secrets
         process.env.ACCESS_TOEKN_SECRET,
         {
             expiresIn: process.env.ACCESS_TOKEN_EXPIRY
         }
     );
-
     return token
 }
 userSchema.methods.generateRefreshToken = function () {
 
-    const RefToken = jwt.sign({
+    const payload = {
         _id: this._id,
-    }, process.env.REFRESH_TOKEN_SECRET, { expiresIn: process.env.REFRESH_TOKEN_EXPIRY });
+    }
+    const RefToken = jwt.sign(
+        payload,
+        process.env.REFRESH_TOKEN_SECRET,
+        {
+            expiresIn: process.env.REFRESH_TOKEN_EXPIRY
+        }
+    );
 
     return RefToken
-
 }
-
-
 
 export const User = mongoose.model('User', userSchema)
