@@ -1,5 +1,5 @@
 
-// Standarise The API Error
+// Standarise The API Error , by extending the error class
 
 class ApiError extends Error {
     constructor(
@@ -10,6 +10,7 @@ class ApiError extends Error {
     )
     // Below is over-write method
     {
+        // super call
         super(message)
         this.statusCode = statusCode
         this.data = null

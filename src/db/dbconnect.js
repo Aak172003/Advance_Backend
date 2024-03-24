@@ -3,7 +3,6 @@ import { DB_NAME } from "../constants.js";
 import dotenv from 'dotenv';
 dotenv.config();
 
-
 const dbConnection = async () => {
     try {
         const connInstance = await mongoose.connect(`${process.env.DATABASE_URI}/${DB_NAME}`);
@@ -13,6 +12,7 @@ const dbConnection = async () => {
     }
     catch (error) {
         console.log(`Error in MongoDB is ${error}`)
+        // Kill the server , if not able to connect with DataBase
         process.exit(1)
     }
 }
