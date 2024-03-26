@@ -203,7 +203,7 @@ const logoutUser = asyncHandler(
             req.user._id,
             {
                 $unset: {
-                    refreshToken: 1 // Setting the field to 1 indicates that it should be removed
+                    refreshToken: 1 // this remove the fiels from document
                 }
             },
             // receive an updated value 
@@ -575,7 +575,7 @@ const getWatchHistory = asyncHandler(
                 // this is like where clause , 
                 // this return only single document current user ka 
                 $match: {
-                    // here i pass string , which is document id in mongodb
+                    // generally _id is a kind of sting , so if i want to perform any operation with _id so we need to convert this string _id to proper mongodb id 
                     _id: new mongoose.Types.ObjectId(req.user._id)
                 }
             },
@@ -636,6 +636,9 @@ const getWatchHistory = asyncHandler(
                             $addFields: {
                                 // existing fields overwrite
                                 owner: {
+                                    // extract first value
+                                    // 1. method is $first : 
+                                    // 2. array element at ...
                                     $first: "$owner"
                                 }
                             }
@@ -646,9 +649,9 @@ const getWatchHistory = asyncHandler(
             }
         ])
 
-        console.log(userHistory);
+        console.log("userHistory :  ", userHistory);
 
-        console.log(userHistory[0].watchHistory);
+        console.log("userHistory[0].watchHistory : ", userHistory[0].watchHistory);
 
         return res.status(200).json(
             new ApiResponse(200,
