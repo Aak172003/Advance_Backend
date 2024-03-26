@@ -40,6 +40,7 @@ router.route('/update-coverimage').patch(verifyJWT, upload.single("coverImage"),
 
 // Channel's userName
 router.route('/get-channel-profile/:username').post(verifyJWT, userController.getUserChannelProfile)
+
 router.route('/get-watch-history').get(verifyJWT, userController.getWatchHistory)
 
 export default router
