@@ -5,6 +5,7 @@ import morgan from 'morgan'
 
 // import userRouter
 import userRouter from './routes/user.route.js'
+import videoRouter from './routes/video.route.js'
 
 const app = express()
 
@@ -33,9 +34,11 @@ app.use(cookieParser())
 
 app.use(morgan('dev'));
 
-// routes 
+// routes
 // api versioning 
+
 app.use("/api/v1/user", userRouter)
+app.use("/api/v1/videos", videoRouter)
 
 app.get('/app', (req, res) => {
     res.json({
