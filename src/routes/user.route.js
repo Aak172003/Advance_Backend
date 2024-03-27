@@ -5,9 +5,9 @@ import * as userController from "../controllers/user.controller.js";
 import { upload } from "../middlewares/multerUploadFile.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
-const router = Router()
+const userRouter = Router()
 
-router.route("/register").post(upload.fields([
+userRouter.route("/register").post(upload.fields([
     {
         name: "avatar",
         maxCount: 1
@@ -19,28 +19,28 @@ router.route("/register").post(upload.fields([
 ]), userController.register)
 
 
-router.route('/login').post(userController.login)
+userRouter.route('/login').post(userController.login)
 
 // secured routes 
-router.route('/logout').post(verifyJWT, userController.logoutUser)
+userRouter.route('/logout').post(verifyJWT, userController.logoutUser)
 
-router.route('/refresh-token').post(userController.refreshAccessToken)
-router.route('/update-password').post(verifyJWT, userController.changeCurrentPassword)
+userRouter.route('/refresh-token').post(userController.refreshAccessToken)
+userRouter.route('/update-password').post(verifyJWT, userController.changeCurrentPassword)
 
-router.route('/get-user').post(verifyJWT, userController.getCurrentUser)
+userRouter.route('/get-user').post(verifyJWT, userController.getCurrentUser)
 
 
 // Patch
-router.route('/update-details').patch(verifyJWT, userController.updateAccountDetails)
+userRouter.route('/update-details').patch(verifyJWT, userController.updateAccountDetails)
 
 // Upload Single file 
-router.route('/update-avatar').patch(verifyJWT, upload.single("avatar"), userController.updateUserAvatar)
-router.route('/update-coverimage').patch(verifyJWT, upload.single("coverImage"), userController.UpdateUserCoverImage)
+userRouter.route('/update-avatar').patch(verifyJWT, upload.single("avatar"), userController.updateUserAvatar)
+userRouter.route('/update-coverimage').patch(verifyJWT, upload.single("coverImage"), userController.UpdateUserCoverImage)
 
 
 // Channel's userName
-router.route('/get-channel-profile/:username').post(verifyJWT, userController.getUserChannelProfile)
+userRouter.route('/get-channel-profile/:username').post(verifyJWT, userController.getUserChannelProfile)
 
-router.route('/get-watch-history').get(verifyJWT, userController.getWatchHistory)
+userRouter.route('/get-watch-history').get(verifyJWT, userController.getWatchHistory)
 
-export default router
+export default userRouter
