@@ -34,12 +34,12 @@ const videoSchema = new mongoose.Schema({
     },
     views: {
         type: Number,
-        defaultValue: 0
+        default: 0
     },
     // Means is publically available or not 
     isPublished: {
         type: Boolean,
-        defaultValue: true
+        default: true
     },
     owner: {
         type: mongoose.Schema.Types.ObjectId,
