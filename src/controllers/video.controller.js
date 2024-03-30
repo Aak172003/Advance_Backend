@@ -160,9 +160,8 @@ const getVideoById = asyncHandler(
 
         const { videoId } = req.params
 
-        console.log("req.user : ", req.user)
-
-        console.log("videoId : ", videoId)
+        // console.log("req.user : ", req.user)
+        // console.log("videoId : ", videoId)
 
         if (!isValidObjectId(videoId)) {
             throw new ApiError(400, "Invalid videoId");
@@ -274,29 +273,24 @@ const getVideoById = asyncHandler(
             }
         ];
 
-        console.log("Aggregation Pipeline Stages:");
+        // console.log("Aggregation Pipeline Stages:");
 
-        for (let i = 0; i < videoPipeline.length; i++) {
-            console.log(`Stage ${i + 1}:`, JSON.stringify(videoPipeline[i], null, 2));
-        }
-
+        // for (let i = 0; i < videoPipeline.length; i++) {
+        //     console.log(`Stage ${i + 1}:`, JSON.stringify(videoPipeline[i], null, 2));
+        // }
 
         const video = await Video.aggregate(videoPipeline);
-
-        console.log("video : ", video)
 
         if (!video) {
             throw new ApiError(500, "failed to fetch video");
         }
 
-        console.log("222222222222222222222222222222")
         await Video.findByIdAndUpdate(videoId, {
             $inc: {
                 views: 1
             }
         })
 
-        console.log("555555555555555555555555555555")
         await User.findByIdAndUpdate(req.user?._id, {
             // set in watchHistory Array
             $addToSet: {
@@ -304,8 +298,6 @@ const getVideoById = asyncHandler(
             }
         })
 
-
-        console.log("888888888888888888888888888888888")
         return res
             .status(200)
             .json(
@@ -335,7 +327,6 @@ const updateThumbnail = asyncHandler(
         if (!video) {
             throw new ApiError(404, "No video found , Invalid Video Access");
         }
-
 
         // video has owner object id, means this video is posted by owner id,
         // and req.user?._id check if both not equal means, you can't edit 
@@ -417,6 +408,7 @@ const updateVideoThumbnail = asyncHandler(
 
         // video has owner object id, means this video is posted by owner id,
         // and req.user?._id check if both not equal means, you can't edit
+
         if (video?.owner.toString() !== req.user?._id.toString()) {
             throw new ApiError(400, "You can't edit this video as you are not the owner");
         }
@@ -426,7 +418,7 @@ const updateVideoThumbnail = asyncHandler(
         const thumbnailToDelete = video.thumbnail.public_id;
 
         if (videoToDelete) {
-            await deleteOnCloudinary(videoToDelete, 'video')
+            await deleteOnCloudinary(videoToDelete, 'video') // Pass video public id and resource tupe as well
         }
         if (thumbnailToDelete) {
             await deleteOnCloudinary(thumbnailToDelete)
@@ -496,6 +488,7 @@ const togglePublishStatus = asyncHandler(
             throw new ApiError(404, "Video not found");
         }
 
+        // Change isPublish Status , only by owner of that video
         if (video?.owner.toString() !== req.user?._id.toString()) {
             throw new ApiError(
                 400,
@@ -512,6 +505,7 @@ const togglePublishStatus = asyncHandler(
             },
             { new: true }
         );
+
         if (!toggledVideoPublish) {
             throw new ApiError(500, "Failed to toogle video publish status");
         }
@@ -543,6 +537,7 @@ const deleteVideo = asyncHandler(
             throw new ApiError(404, "No video found");
         }
 
+        // delete video , only by its owner
         if (video?.owner.toString() !== req.user?._id.toString()) {
             throw new ApiError(400, "You can't delete this video as you are not the owner");
         }
@@ -558,17 +553,20 @@ const deleteVideo = asyncHandler(
 
         // delete video likes
         await Like.deleteMany({
+            // Videoid
             video: videoId
         })
 
         // delete Comment
         await Comment.deleteMany({
+            // Videoid
             video: videoId
         })
 
         return res
             .status(200)
-            .json(new ApiResponse(200, {}, "Video deleted successfully"));
+            .json(new ApiResponse(200, {}, "Video deleted successfully")
+            );
     }
 )
 
