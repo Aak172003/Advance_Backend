@@ -10,4 +10,8 @@ commentRouter.use(verifyJWT)
 commentRouter.route('/getcomment/:videoId').get(commentController.getAllComments)
 commentRouter.route('/addcomment/:videoId').post(commentController.addComment)
 
+commentRouter.route('/updatecomment/:commentId/').patch(commentController.updateComment)
+
+commentRouter.route('/deletecomment/:commentId').delete(commentController.deleteComment)
+
 export default commentRouter
