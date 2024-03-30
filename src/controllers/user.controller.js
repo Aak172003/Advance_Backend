@@ -7,7 +7,7 @@ import { ApiResponse } from "../utils/ApiResponse.js";
 import { asyncHandler } from "../utils/asyncHandler.js";
 
 // File Uploader
-import { uploadCloudinary } from "../utils/cloudinary.js";
+import { deleteOnCloudinary, uploadCloudinary } from "../utils/cloudinary.js";
 import { v2 as cloudinary } from 'cloudinary';
 
 
@@ -119,11 +119,17 @@ const register = asyncHandler(
 
         const user = await User.create({
             fullName,
-            avatar: avatar.url,
-            coverImage: coverImage?.url || "",
+            avatar: {
+                public_id: avatar.public_id,
+                url: avatar.secure_url
+            },
+            coverImage: {
+                public_id: coverImage?.public_id || "",
+                url: coverImage?.secure_url || ""
+            },
+            username: username.toLowerCase(),
             email,
-            password,
-            username
+            password
         })
 
         // _id of newlyuser create
@@ -348,46 +354,36 @@ const updateUserAvatar = asyncHandler(
         // get single file path
         const avatarLocalPath = req.file?.path;
 
-        const url = req.user.avatar
-        const regex = /\/([^\/]+)\.jpg$|\/([^\/]+)\.png$/;
-
-        const match = url.match(regex);
-
-        let extractedstring = undefined
-        if (match) {
-
-            extractedstring = match[1] || match[2]; // Select the matched group that contains the filename
-        }
-        else {
-            console.log("No match Found");
-        }
-
         if (!avatarLocalPath) {
             throw new ApiError(400, "Avatar file is Missing")
         }
 
-        if (req.user.avatar) {
-            // Delete previous avatar from Cloudinary using the extracted filename
-            await cloudinary.uploader.destroy(`${extractedstring}`, function (error, result) {
-                if (error) {
-                    console.error(error)
-                } else {
-                    // return true or false
-                    console.log(result)
-                }
-            })
-        }
-
         const avatar = await uploadCloudinary(avatarLocalPath)
+
         if (!avatar.url) {
             throw new ApiError(400, "Error While Uploading on Avatar")
+        }
+
+        const user = await User.findById(req.user._id).select('avatar')
+
+        if (!user) {
+            throw new ApiError(404, "User not found");
+        }
+
+        const avatarToDelete = user.avatar.public_id
+
+        if (avatarToDelete) {
+            await deleteOnCloudinary(avatarToDelete);
         }
 
         const updatedUserAvatar = await User.findByIdAndUpdate(
             req.user._id,
             {
                 $set: {
-                    avatar: avatar.url
+                    avatar: {
+                        public_id: avatar.public_id,
+                        url: avatar.secure_url
+                    }
                 }
             },
             { new: true }
@@ -404,46 +400,36 @@ const UpdateUserCoverImage = asyncHandler(
 
         const coverImageLocalPath = req.file?.path
 
-        const url = req.user.coverImage
-
-        const regex = /\/([^\/]+)\.jpg$|\/([^\/]+)\.png$/;
-        const match = url.match(regex);
-        let extractedstring = undefined
-
-        if (match) {
-            extractedstring = match[1] || match[2]; // Select the matched group that contains the filename
-        }
-        else {
-            console.log("No match Found");
-        }
-
         if (!coverImageLocalPath) {
             throw new ApiError(400, "Cover Image file is Missing")
         }
 
-        if (req.user.coverImage) {
-
-            // Delete previous avatar from Cloudinary using the extracted filename
-
-            await cloudinary.uploader.destroy(`${extractedstring}`, function (error, result) {
-                if (error) {
-                    console.error(error)
-                } else {
-                    console.log(result)
-                }
-            })
-        }
-
         const coverImage = await uploadCloudinary(coverImageLocalPath)
+
         if (!coverImage.url) {
             throw new ApiError(400, "Error While Uploading on coverImage")
+        }
+
+        const user = await User.findById(req.user._id).select('coverImage')
+
+        if (!user) {
+            throw new ApiError(404, "User not found");
+        }
+
+        const coverImageToDelete = user.coverImage.public_id
+
+        if (coverImageToDelete) {
+            await deleteOnCloudinary(coverImageToDelete)
         }
 
         const updatedUserCoverImage = await User.findByIdAndUpdate(
             req.user._id,
             {
                 $set: {
-                    coverImage: coverImage.url
+                    coverImage: {
+                        public_id: coverImage.public_id,
+                        url: coverImage.secure_url
+                    }
                 }
             },
             { new: true }

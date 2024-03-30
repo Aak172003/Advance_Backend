@@ -1,4 +1,4 @@
-import mongoose from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 // This library allow to write mongodb aggration pipeline
 import mongooseAggregatePaginate from "mongoose-aggregate-paginate-v2";

@@ -39,7 +39,7 @@ const videoSchema = new mongoose.Schema({
     // Means is publically available or not 
     isPublished: {
         type: Boolean,
-        default: true
+        default: false
     },
     owner: {
         type: mongoose.Schema.Types.ObjectId,
