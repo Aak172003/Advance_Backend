@@ -5,12 +5,9 @@ import * as videoController from '../controllers/video.controller.js'
 import { upload } from "../middlewares/multerUploadFile.js";
 import { verifyJWT } from "../middlewares/auth.middleware.js";
 
-
 const videoRouter = Router()
 
-
 videoRouter.route('/').get(videoController.getAllVideos)
-
 
 videoRouter.use(verifyJWT)   // Apply verifyJWT middleware to all routes in this file
 
@@ -27,7 +24,7 @@ videoRouter.route('/').post(upload.fields([
 videoRouter.route('/getvideo/:videoId').get(videoController.getVideoById)
 
 // Update Only Thumbnail in this Controller 
-// videoRouter.route('/update/:videoId').patch(upload.single('thumbnailLocalPath'), videoController.updateThumbnail)
+videoRouter.route('/thumbnail/update/:videoId').patch(upload.single('thumbnailLocalPath'), videoController.updateThumbnail)
 
 // Update Thumbnail And Video in single Controller 
 videoRouter.route('/update/:videoId').patch(upload.fields([
@@ -39,8 +36,10 @@ videoRouter.route('/update/:videoId').patch(upload.fields([
         name: "videoLocalPath",
         maxCount: 1
     }
-]), videoController.update_Video_Thumbnail)
+]), videoController.updateVideoThumbnail)
 
+videoRouter.route('/delete/:videoId').delete(videoController.deleteVideo)
 
+videoRouter.route('/toggle/publish/:videoId').patch(videoController.togglePublishStatus)
 
 export default videoRouter
