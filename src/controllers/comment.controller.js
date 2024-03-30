@@ -3,6 +3,8 @@ import { asyncHandler } from "../utils/asyncHandler.js";
 import { Video } from "../models/video.models.js";
 import { Comment } from "../models/comments.models.js";
 import { ApiResponse } from "../utils/ApiResponse.js";
+import { Like } from "../models/like.models.js";
+import { ApiError } from "../utils/ApiError.js";
 
 // get all comments for a video
 
@@ -95,8 +97,11 @@ const getAllComments = asyncHandler(
 
         return res
             .status(200)
-            .json(new ApiResponse(200, comments, "Comments fetched successfully"));
-
+            .json(new ApiResponse(
+                200,
+                comments,
+                "Comments fetched successfully")
+            );
     }
 )
 
@@ -117,7 +122,6 @@ const addComment = asyncHandler(
             throw new ApiError(404, "Video not found");
         }
 
-
         const comment = await Comment.create({
             content,
             video: videoId,
@@ -130,10 +134,94 @@ const addComment = asyncHandler(
 
         return res
             .status(201)
-            .json(new ApiResponse(201, comment, "Comment added successfully"));
-
+            .json(new ApiResponse(
+                201,
+                comment,
+                "Comment added successfully"));
     }
 )
 
+// update a comment
+const updateComment = asyncHandler(
+    async (req, res, next) => {
 
-export { getAllComments, addComment }
+        const { commentId } = req.params;
+        const { content } = req.body;
+
+        console.log(commentId)
+        console.log(content)
+
+        if (!content) {
+            throw new ApiError(400, "content is required");
+        }
+
+        const comment = await Comment.findById(commentId)
+
+        if (!comment) {
+            throw new ApiError(404, "Comment not found");
+        }
+
+        if (comment?.owner.toString() !== req.user?._id.toString()) {
+            throw new ApiError(400, "only comment owner can edit their comment");
+        }
+
+        const updateComment = await Comment.findByIdAndUpdate(
+            comment?._id,
+            {
+                $set: {
+                    content: content
+                }
+            },
+            { new: true }
+        )
+
+        if (!updateComment) {
+            throw new ApiError(500, "Failed to edit comment please try again");
+        }
+
+        return res
+            .status(200)
+            .json(new ApiResponse(
+                200,
+                updateComment,
+                "Comment edited successfully")
+            );
+
+    }
+
+)
+
+// delete a comment
+const deleteComment = asyncHandler(
+    async (req, res, next) => {
+        const { commentId } = req.params
+
+        const comment = await Comment.findById(commentId)
+
+        if (!comment) {
+            throw new ApiError(404, "Comment not found");
+        }
+
+
+        if (comment?.owner.toString() !== req.user?._id.toString()) {
+            throw new ApiError(400, "only comment owner can delete their comment");
+        }
+
+        await Comment.findByIdAndDelete(commentId)
+
+        // delete like as well of comment
+
+        await Like.deleteMany({
+            comment: commentId,
+            likeBy: req.user
+        })
+
+        return res
+            .status(200)
+            .json(
+                new ApiResponse(200, { commentId }, "Comment deleted successfully")
+            );
+    }
+)
+
+export { getAllComments, addComment, updateComment, deleteComment }
