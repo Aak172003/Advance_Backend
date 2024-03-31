@@ -8,6 +8,7 @@ import userRouter from './routes/user.route.js'
 import videoRouter from './routes/video.route.js'
 import likeRouter from './routes/like.route.js'
 import commentRouter from './routes/comment.route.js'
+import playlistRouter from './routes/playlist.route.js'
 
 const app = express()
 
@@ -44,6 +45,7 @@ app.use("/api/v1/videos", videoRouter)
 app.use("/api/v1/like", likeRouter)
 
 app.use("/api/v1/comment", commentRouter)
+app.use("/api/v1/playlist", playlistRouter)
 
 app.get('/app', (req, res) => {
     res.json({
