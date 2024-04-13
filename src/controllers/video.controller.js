@@ -49,9 +49,11 @@ const publishAVideo = asyncHandler(async (req, res) => {
             public_id: thumbnail.public_id
         },
         owner: req.user?._id,
+        // Initial me sb koi publically publish nhi hoge , we can toggle between 
         isPublished: false
     });
 
+    // Check that video is successfully upload or not 
     const videoUploaded = await Video.findById(video._id);
 
     if (!videoUploaded) {
@@ -70,11 +72,14 @@ const getAllVideos = asyncHandler(
 
         // It initializes an empty array named pipeline to construct the aggregation pipeline for MongoDB.
         const pipeline = [];
+
         if (query) {
             // It checks if a search query is provided. If so, it adds a $search stage to the aggregation pipeline to perform a text search on the title and description fields.
             pipeline.push(
                 {
+                    // Try to find any video which have query name 
                     $match: {
+                        // either search video via title or description 
                         $or: [
                             { title: { $regex: query, $options: 'i' } },
                             { description: { $regex: query, $options: 'i' } }
@@ -120,6 +125,7 @@ const getAllVideos = asyncHandler(
                     foreignField: "_id",
                     as: "ownerDetails",
 
+                    // This is for nested filtering 
                     pipeline: [
                         {
                             $project: {
@@ -148,7 +154,6 @@ const getAllVideos = asyncHandler(
 
         // Video.aggregatePaginate.
         const video = await Video.aggregatePaginate(videoAggregate, options);
-
         return res
             .status(200)
             .json(new ApiResponse(200, video, "Videos fetched successfully"));
@@ -159,9 +164,6 @@ const getVideoById = asyncHandler(
     async (req, res, next) => {
 
         const { videoId } = req.params
-
-        // console.log("req.user : ", req.user)
-        // console.log("videoId : ", videoId)
 
         if (!isValidObjectId(videoId)) {
             throw new ApiError(400, "Invalid videoId");
@@ -198,6 +200,7 @@ const getVideoById = asyncHandler(
                     foreignField: "_id",
                     as: "owner",
 
+                    // find subscriber and and subscriberTo
                     pipeline: [
                         {
                             $lookup: {
@@ -216,8 +219,7 @@ const getVideoById = asyncHandler(
                                     $cond: {
                                         if: {
                                             $in: [
-                                                req.user._id,
-                                                "$subscribers.subscriber"]
+                                                req.user._id,"$subscribers.subscriber"]
                                         },
                                         then: true,
                                         else: false
@@ -248,8 +250,7 @@ const getVideoById = asyncHandler(
                         $cond: {
                             if: {
                                 $in: [
-                                    req.user?._id,
-                                    "$likes.likedBy"]
+                                    req.user?._id,"$likes.likedBy"]
                             },
                             then: true,
                             else: false
@@ -272,12 +273,6 @@ const getVideoById = asyncHandler(
                 }
             }
         ];
-
-        // console.log("Aggregation Pipeline Stages:");
-
-        // for (let i = 0; i < videoPipeline.length; i++) {
-        //     console.log(`Stage ${i + 1}:`, JSON.stringify(videoPipeline[i], null, 2));
-        // }
 
         const video = await Video.aggregate(videoPipeline);
 
@@ -332,15 +327,13 @@ const updateThumbnail = asyncHandler(
         // and req.user?._id check if both not equal means, you can't edit 
         if (video?.owner.toString() !== req.user?._id.toString()) {
             throw new ApiError(
-                400,
-                "You can't edit this video as you are not the owner"
+                400,"You can't edit this video as you are not the owner"
             );
         }
 
         //deleting old thumbnail and updating with new one
         // TODO 
         const thumbnailToDelete = video.thumbnail.public_id;
-
 
         // Access from raw formdata
         const thumbnailLocalPath = req.file?.path;
@@ -424,7 +417,6 @@ const updateVideoThumbnail = asyncHandler(
             await deleteOnCloudinary(thumbnailToDelete)
         }
 
-
         const videoPart = req.files?.videoLocalPath[0]?.path
         const thumbnailPart = req.files?.thumbnailLocalPath[0]?.path;
 
@@ -437,6 +429,7 @@ const updateVideoThumbnail = asyncHandler(
 
         const videoUpload = await uploadCloudinary(videoPart)
         const thumbnail = await uploadCloudinary(thumbnailPart);
+        
         if (!thumbnail) {
             throw new ApiError(400, "thumbnail not found");
         }
@@ -542,12 +535,14 @@ const deleteVideo = asyncHandler(
             throw new ApiError(400, "You can't delete this video as you are not the owner");
         }
 
+        // Remove entery form db
         const videoDeleted = await Video.findByIdAndDelete(video?._id);
 
         if (!videoDeleted) {
             throw new ApiError(400, "Failed to delete the video please try again");
         }
 
+        // delete video or thumbnail from cloudinary as well . 
         await deleteOnCloudinary(video.thumbnail.public_id);
         await deleteOnCloudinary(video.videoFile.public_id, "video");
 

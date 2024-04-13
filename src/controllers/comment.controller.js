@@ -11,6 +11,7 @@ import { ApiError } from "../utils/ApiError.js";
 const getAllComments = asyncHandler(
     async (req, res, next) => {
 
+        // Comment on video
         const { videoId } = req.params
         const { page = 1, limit = 10 } = req.query
         const video = await Video.findById(videoId)
@@ -22,6 +23,7 @@ const getAllComments = asyncHandler(
         const commentFind = Comment.aggregate([
             // Find Video
             {
+                // same video pr no of differnt user comment
                 $match: {
                     video: new mongoose.Types.ObjectId(videoId)
                 }
@@ -97,11 +99,7 @@ const getAllComments = asyncHandler(
 
         return res
             .status(200)
-            .json(new ApiResponse(
-                200,
-                comments,
-                "Comments fetched successfully")
-            );
+            .json(new ApiResponse(200,comments,"Comments fetched successfully"));
     }
 )
 
@@ -147,9 +145,8 @@ const updateComment = asyncHandler(
 
         const { commentId } = req.params;
         const { content } = req.body;
-
-        console.log(commentId)
-        console.log(content)
+        // console.log(commentId)
+        // console.log(content)
 
         if (!content) {
             throw new ApiError(400, "content is required");
@@ -210,7 +207,6 @@ const deleteComment = asyncHandler(
         await Comment.findByIdAndDelete(commentId)
 
         // delete like as well of comment
-
         await Like.deleteMany({
             comment: commentId,
             likeBy: req.user
@@ -219,8 +215,7 @@ const deleteComment = asyncHandler(
         return res
             .status(200)
             .json(
-                new ApiResponse(200, { commentId }, "Comment deleted successfully")
-            );
+                new ApiResponse(200, { commentId }, "Comment deleted successfully"));
     }
 )
 

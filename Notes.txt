@@ -1,6 +1,7 @@
 
 Nodemon use because of hot reloding concept . 
-If file save so automatically restart the server , so ye pta bhi nhi lgta jo code likha hai wo sb processs hokr code me show hone lga .
+If file save so automatically restart the server , 
+so ye pta bhi nhi lgta jo code likha hai wo sb processs hokr code me show hone lga .
 
 ----------------------------------------------------------------------------------------------------------------------------------------
 

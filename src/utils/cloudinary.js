@@ -56,13 +56,11 @@ const deleteOnCloudinary = async (public_id, resource_type = 'image') => {
         const result = await cloudinary.uploader.destroy(public_id, {
             resource_type: `${resource_type}`
         })
-
         console.log("result : ", result)
     }
     catch (error) {
         console.log('Failed, while Deleting the resouce', error)
         return error
-
     }
 }
 

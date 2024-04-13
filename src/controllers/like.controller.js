@@ -15,6 +15,7 @@ const toggleVideoLike = asyncHandler(
         }
 
         const videoAlreadyLiked = await Like.findOne({
+            // find on behalf of two things 
             video: videoId,
             likedBy: req.user?._id
         })
@@ -33,7 +34,6 @@ const toggleVideoLike = asyncHandler(
         })
 
         // First Time Like 
-
         return res
             .status(200)
             .json(new ApiResponse(200, { isLiked: true }));
@@ -50,6 +50,7 @@ const toggleCommentLike = asyncHandler(
         }
 
         const commentAlreadyLiked = await Like.findOne({
+            // First find is already liked or not 
             comment: commentId,
             likedBy: req.user?._id
         })
@@ -109,18 +110,28 @@ const toggleTweetLike = asyncHandler(
 const getLikedVideos = asyncHandler(
     async (req, res, next) => {
 
+        // Get Liked Video , here this will first pass through verify Function ,
+        // this will set req.user = user from decode token 
+        
+        // const {userId} = req?.user?._id
+
         const allLikesVide = await Like.aggregate([
             {
+                // Find particular user
                 $match: {
                     likedBy: new mongoose.Types.ObjectId(req.user?._id),
                 },
             },
+
+            // Find videos via lookup
             {
                 $lookup: {
                     from: 'videos',
                     localField: 'video',
                     foreignField: '_id',
                     as: 'likedVideo',
+
+                    // then find who publish that video
                     pipeline: [
                         {
                             $lookup: {

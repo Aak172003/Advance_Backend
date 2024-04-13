@@ -27,8 +27,6 @@ const createPlaylist = asyncHandler(
             throw new ApiError(500, "failed to create playlist");
         }
 
-        console.log(playlist)
-
         return res
             .status(200)
             .json(new ApiResponse(200, playlist, "playlist created successfully"));
@@ -57,7 +55,7 @@ const updatePlaylist = asyncHandler(
         }
 
         if (playlist?.playlistCreatedBy.toString() !== req.user?._id.toString()) {
-            throw new ApiError(400, "only comment owner can edit their comment");
+            throw new ApiError(400, "only playlit owner can edit their comment");
         }
 
         const updatedPlaylist = await Playlist.findByIdAndUpdate(
@@ -255,6 +253,7 @@ const getPlaylistById = asyncHandler(
                     'videos.isPublished': true
                 }
             },
+            
             // find user details
             {
                 $lookup: {
@@ -308,7 +307,6 @@ const getPlaylistById = asyncHandler(
             }
         ])
 
-        console.log(playlistVideo, playlistVideo[0])
         return res
             .status(200)
             .json(new ApiResponse(200, playlistVideo[0], "playlist fetched successfully"));
