@@ -53,6 +53,7 @@ const publishAVideo = asyncHandler(async (req, res) => {
         isPublished: false
     });
 
+    // Check that video is successfully upload or not 
     const videoUploaded = await Video.findById(video._id);
 
     if (!videoUploaded) {
@@ -78,6 +79,7 @@ const getAllVideos = asyncHandler(
                 {
                     // Try to find any video which have query name 
                     $match: {
+                        // either search video via title or description 
                         $or: [
                             { title: { $regex: query, $options: 'i' } },
                             { description: { $regex: query, $options: 'i' } }
@@ -152,7 +154,6 @@ const getAllVideos = asyncHandler(
 
         // Video.aggregatePaginate.
         const video = await Video.aggregatePaginate(videoAggregate, options);
-
         return res
             .status(200)
             .json(new ApiResponse(200, video, "Videos fetched successfully"));
@@ -163,9 +164,6 @@ const getVideoById = asyncHandler(
     async (req, res, next) => {
 
         const { videoId } = req.params
-
-        // console.log("req.user : ", req.user)
-        // console.log("videoId : ", videoId)
 
         if (!isValidObjectId(videoId)) {
             throw new ApiError(400, "Invalid videoId");
@@ -202,6 +200,7 @@ const getVideoById = asyncHandler(
                     foreignField: "_id",
                     as: "owner",
 
+                    // find subscriber and and subscriberTo
                     pipeline: [
                         {
                             $lookup: {
@@ -418,7 +417,6 @@ const updateVideoThumbnail = asyncHandler(
             await deleteOnCloudinary(thumbnailToDelete)
         }
 
-
         const videoPart = req.files?.videoLocalPath[0]?.path
         const thumbnailPart = req.files?.thumbnailLocalPath[0]?.path;
 
@@ -431,6 +429,7 @@ const updateVideoThumbnail = asyncHandler(
 
         const videoUpload = await uploadCloudinary(videoPart)
         const thumbnail = await uploadCloudinary(thumbnailPart);
+        
         if (!thumbnail) {
             throw new ApiError(400, "thumbnail not found");
         }

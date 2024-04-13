@@ -13,7 +13,7 @@ const getChannelStatus = asyncHandler(
         // like total video views, total subscribers, total videos, total likes etc.
 
         const userId = req.user?._id
-
+        
         // Find total subscribers
         const totalSubscribers = await Subscription.aggregate([
             {
@@ -22,7 +22,8 @@ const getChannelStatus = asyncHandler(
                 }
             },
             {
-                // It groups the documents by a specified expression and applies accumulator expressions to create computed fields
+                // It groups the documents by a specified expression and , 
+                // applies accumulator expressions to create computed fields
                 $group: {
                     _id: null,
                     subscriberCount: {
@@ -70,7 +71,8 @@ const getChannelStatus = asyncHandler(
                         $sum: 1
                     }
                 }
-            }
+            },
+            
         ])
 
         const channelStats = {
@@ -151,15 +153,9 @@ const getChannelVideos = asyncHandler(
         return res
             .status(200)
             .json(
-                new ApiResponse(
-                    200,
-                    videos,
-                    "channel stats fetched successfully"
-                )
+                new ApiResponse(200,videos,"channel stats fetched successfully")
             );
     }
 )
-
-
 
 export { getChannelStatus, getChannelVideos }
