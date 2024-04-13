@@ -10,6 +10,9 @@ subscriptionRouter.use(verifyJWT)
 
 subscriptionRouter.route('/toggle/sub-unsub/:channelId').get(subscriptionController.toggleSubscription)
 
+subscriptionRouter.route('/get/subscribers/:channelId').get(subscriptionController.getSubscribersList)
+
+
 export default subscriptionRouter
 
 

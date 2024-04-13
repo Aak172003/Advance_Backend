@@ -98,8 +98,7 @@ const register = asyncHandler(
 
             // check req.files have array or not means req.files have [avatar , coverimage]
 
-            Array.isArray(req.files.coverImage)
-            && req.files.coverImage.length > 0   // check if array and if req.files.coverImage.length > 0 means client send coverImageAsWell
+            Array.isArray(req.files.coverImage) && req.files.coverImage.length > 0   // check if array and if req.files.coverImage.length > 0 means client send coverImageAsWell
         ) {
             coverImageLocalPath = req.files.coverImage[0].path // path get after multer store the file into local
         }
@@ -107,11 +106,12 @@ const register = asyncHandler(
         if (!avatarLocalPath) {
             throw new ApiError(400, "Avatar file is Required")
         }
+
         const avatar = await uploadCloudinary(avatarLocalPath)
         const coverImage = await uploadCloudinary(coverImageLocalPath)
 
-        // console.log("avatar : ", avatar)
-        // console.log("coverImage : ", coverImage)
+        // console.log("avatar ------------------------ : ", avatar)
+        // console.log("coverImage -------------------- : ", coverImage)
 
         if (!avatar) {
             throw new ApiError(400, "Avatar file not Upload Successfully")
@@ -120,10 +120,12 @@ const register = asyncHandler(
         const user = await User.create({
             fullName,
             avatar: {
+                // These below two things comes in object when upload anything 
                 public_id: avatar.public_id,
                 url: avatar.secure_url
             },
             coverImage: {
+                // These below two things comes in object when upload anything 
                 public_id: coverImage?.public_id || "",
                 url: coverImage?.secure_url || ""
             },
@@ -156,6 +158,7 @@ const login = asyncHandler(
         if (!(username || email)) {
             throw new ApiError(400, "username or email is required")
         }
+        // Find that user
         const user = await User.findOne({
             // ya to email mil jae , ya to username mil jae 
             $or: [{ username }, { email }]
@@ -208,8 +211,9 @@ const logoutUser = asyncHandler(
         await User.findByIdAndUpdate(
             req.user._id,
             {
+                // this remove the fiels from document
                 $unset: {
-                    refreshToken: 1 // this remove the fiels from document
+                    refreshToken: 1 
                 }
             },
             // receive an updated value 
@@ -220,6 +224,7 @@ const logoutUser = asyncHandler(
             secure: true
         }
         return res.status(200)
+            // This is used to clear cookie
             .clearCookie("accessToken", options)
             .clearCookie("refreshToken", options)
             .json(new ApiResponse(200,
@@ -239,17 +244,17 @@ const refreshAccessToken = asyncHandler(
         // 1. accessToken , 2. RefreshToken 
         // If accessToken expired so we can re-generate the accessToken with the help of Refresh Token
 
-        const inComingToken = req.cookies.refreshToken || req.body.refreshToken || req.header("Authorization")?.replace("Bearer", "")
+        const inComingRefreshToken = req.cookies.refreshToken || req.body.refreshToken || req.header("Authorization")?.replace("Bearer", "")
 
-        if (!inComingToken) {
+        if (!inComingRefreshToken) {
             throw new ApiError(401, "Unauthorised Request")
         }
 
         try {
-            const decodeToken = jwt.verify(inComingToken, process.env.REFRESH_TOKEN_SECRET)
+            const decodeToken = jwt.verify(inComingRefreshToken, process.env.REFRESH_TOKEN_SECRET)
 
             // console.log("Decode Refresh Token", decodeToken)
-
+            // Then find that user is exist or not inside db , if exist then i refresh token
             const user = await User.findById(decodeToken?._id)
 
             if (!user) {
@@ -291,6 +296,8 @@ const changeCurrentPassword = asyncHandler(
         // req has user Object 
         const { oldPassword, newPassword } = req.body
         // console.log("req.user : ", req.user)
+
+        // This execute after verifyToken function exist
         const { id } = req.user
 
         const user = await User.findById(id)
@@ -300,7 +307,9 @@ const changeCurrentPassword = asyncHandler(
             throw new ApiError(400, "Invalid Old Password")
         }
 
+        // Update new Password
         user.password = newPassword
+        
         await user.save({ validateBeforeSave: false })
 
         return res.status(200)
@@ -364,6 +373,7 @@ const updateUserAvatar = asyncHandler(
             throw new ApiError(400, "Error While Uploading on Avatar")
         }
 
+        // This will never remove fields from database , this will remove while sending response 
         const user = await User.findById(req.user._id).select('avatar')
 
         if (!user) {
@@ -372,6 +382,7 @@ const updateUserAvatar = asyncHandler(
 
         const avatarToDelete = user.avatar.public_id
 
+        // Call previous exist file from cloudinary
         if (avatarToDelete) {
             await deleteOnCloudinary(avatarToDelete);
         }
@@ -463,8 +474,8 @@ const getUserChannelProfile = asyncHandler(
                     username: username
                 }
             },
-            // lookup -> is like operation 
-            // find how many my subscribers
+            // // lookup -> is like operation 
+            // // find how many my subscribers
             {
                 // kon si documents se join kru , lookup kru
                 // kaha se 
@@ -483,9 +494,9 @@ const getUserChannelProfile = asyncHandler(
                 }
             },
 
-            // -------------------local is user , access subscriber and channel form subscriptionschema
-            // lookup -> is like operation
-            // find whom i subscribed -> subscriber me name of user
+            // // -------------------local is user , access subscriber and channel form subscriptionschema
+            // // lookup -> is like operation
+            // // find whom i subscribed -> subscriber me name of user
             {
                 $lookup: {
                     from: "subscriptions",
@@ -495,7 +506,7 @@ const getUserChannelProfile = asyncHandler(
                 }
             },
 
-            // add new fileds ( with those data which exist in db , but addfileds not exist)
+            // // add new fileds ( with those data which exist in db , but addfileds not exist)
             {
                 $addFields: {
                     // subscribe count
@@ -519,7 +530,7 @@ const getUserChannelProfile = asyncHandler(
                     }
                 }
             },
-            // Project is used to return things in our requirements basis
+            // // Project is used to return things in our requirements basis
             {
                 $project: {
                     // jisko Response me bhejna hai usko 1 krdo
@@ -582,6 +593,7 @@ const getWatchHistory = asyncHandler(
                     // result name , this is a new field 
                     as: "watchHistory",
 
+                    // Nested Lookup for finding User 
                     // Owner also related to user 
                     // This allows Nested Pipelines
                     pipeline: [
@@ -604,7 +616,7 @@ const getWatchHistory = asyncHandler(
                                 // result name , this is a new field 
                                 as: "owner",
 
-                                // User wala lookup return this much things 
+                                // User wala lookup return this much things , after performin lookup operation
                                 pipeline: [
                                     {
                                         $project: {
